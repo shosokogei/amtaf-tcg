@@ -4,82 +4,57 @@ import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
 
 export default function Categories() {
   const [categories, setCategories] = useState([])
-  const [genres, setGenres] = useState([])
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
-  const [genreId, setGenreId] = useState('')
 
-  const fetchAll = async () => {
-    const [catSnap, genSnap] = await Promise.all([
-      getDocs(collection(db, 'categories')),
-      getDocs(collection(db, 'genres'))
-    ])
-    setCategories(catSnap.docs.map(d => ({ id: d.id, ...d.data() })))
-    setGenres(genSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+  const fetch = async () => {
+    const snap = await getDocs(collection(db, 'categories'))
+    setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })))
   }
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => { fetch() }, [])
 
   const add = async () => {
-    if (!name || !slug || !genreId) return
+    if (!name || !slug) return
     await addDoc(collection(db, 'categories'), {
       name,
       slug,
-      genre_id: genreId,
       sort_order: categories.length + 1
     })
     setName('')
     setSlug('')
-    fetchAll()
+    fetch()
   }
 
   const remove = async (id) => {
     await deleteDoc(doc(db, 'categories', id))
-    fetchAll()
+    fetch()
   }
-
-  const genreName = (id) => genres.find(g => g.id === id)?.name ?? '-'
 
   return (
     <div>
-      <h2>カテゴリ管理</h2>
+      <h2 style={h2}>カテゴリ管理</h2>
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <select value={genreId} onChange={e => setGenreId(e.target.value)} style={{ padding: '6px 10px' }}>
-          <option value="">ジャンルを選択</option>
-          {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-        <input
-          placeholder="名前（例：ブースターパック）"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          style={{ padding: '6px 10px', width: 200 }}
-        />
-        <input
-          placeholder="スラッグ（例：booster）"
-          value={slug}
-          onChange={e => setSlug(e.target.value)}
-          style={{ padding: '6px 10px', width: 200 }}
-        />
-        <button onClick={add} style={{ padding: '6px 16px' }}>追加</button>
+        <input placeholder="名前（例：ブースターパック）" value={name} onChange={e => setName(e.target.value)} style={input} />
+        <input placeholder="スラッグ（例：booster）" value={slug} onChange={e => setSlug(e.target.value)} style={input} />
+        <button onClick={add} style={btn}>追加</button>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
+      <table style={table}>
         <thead>
           <tr style={{ background: '#eee' }}>
-            <th style={th}>ジャンル</th>
             <th style={th}>名前</th>
             <th style={th}>スラッグ</th>
+            <th style={th}>順番</th>
             <th style={th}></th>
           </tr>
         </thead>
         <tbody>
           {categories.map(c => (
             <tr key={c.id}>
-              <td style={td}>{genreName(c.genre_id)}</td>
               <td style={td}>{c.name}</td>
               <td style={td}>{c.slug}</td>
-              <td style={td}>
-                <button onClick={() => remove(c.id)} style={{ color: 'red' }}>削除</button>
-              </td>
+              <td style={td}>{c.sort_order}</td>
+              <td style={td}><button onClick={() => remove(c.id)} style={deleteBtn}>削除</button></td>
             </tr>
           ))}
         </tbody>
@@ -88,5 +63,10 @@ export default function Categories() {
   )
 }
 
-const th = { padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #ddd' }
-const td = { padding: '8px 12px', borderBottom: '1px solid #eee' }
+const h2 = { marginBottom: 20, color: '#2b2b2b' }
+const input = { padding: '6px 10px', width: 220, border: '1px solid #ddd', borderRadius: 4 }
+const btn = { padding: '6px 20px', background: '#f5a623', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }
+const deleteBtn = { padding: '4px 12px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }
+const table = { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8 }
+const th = { padding: '10px 14px', textAlign: 'left', borderBottom: '1px solid #ddd', color: '#555' }
+const td = { padding: '10px 14px', borderBottom: '1px solid #f0f0f0' }

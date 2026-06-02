@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { db } from '../firebase'
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
-
 export default function Categories() {
   const [categories, setCategories] = useState([])
   const [name, setName] = useState('')

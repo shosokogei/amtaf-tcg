@@ -3,7 +3,6 @@ import Genres from './pages/Genres'
 import Categories from './pages/Categories'
 import Sets from './pages/Sets'
 import Products from './pages/Products'
-
 export default function App() {
   return (
     <BrowserRouter>
